@@ -35,7 +35,7 @@ function loadToDos() {
   const storedRemToDos = JSON.parse(window[STORAGE].getItem(TODOS_REMOTE_KEY));
   if (storedToDos) {
     toDos = storedToDos;
-  }else  (storedRemToDos) {
+  }else  if (storedRemToDos) {
     toDosRem = storedRemToDos;
   }
 }
