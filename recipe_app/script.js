@@ -1,70 +1,63 @@
-import fetchData, {apiBaseUrl, categoriesEndPoint} from "./scripts/fetchData.js";
-import   {readFromStorage, storageKeys, writeToStorage} from  "./scripts/storageControl.js"
+import fetchData, {
+  apiBaseUrl,
+  categoriesEndpoint,
+  fetchMealsByCategory,
+} from "./fetchData.js";
 
-const categgoriesFilterDiv = document.getElementById("detailed-categories-filter");
+const categoriesFilterDiv = document.getElementById(
+  "detailed-categories-filter"
+);
+const resultsContainer = document.getElementById("results-contaienr");
 
+function createMealPreviewElement(meal) {
+  const { idMeal, strMealThumb } = meal;
+  const recipeDiv = document.createElement("div");
+  recipeDiv.className = "category-box";
+  recipeDiv.setAttribute("id", idMeal);
 
-// tova go ima vyv fetchData
-// const apiBaseUrl = `https://www.themealdb.com/api/json/v1/1` 
-// const categoriesEndPoint = "/categories.php"
+  const recipeImg = document.createElement("img");
+  recipeImg.setAttribute("src", strMealThumb);
 
-// async function fetchData(url){
-//     try {
-//        const response = await fetch(url);
-//        const data = await response.json();
-//        return data;
-
-//     } catch (err){
-//         console.log(err)
-//     }
-// }
-
-
-
-function createCategoryElement(categoryObj){
-    const { strCategory: title , strCategoryThumb: imgSrc } = categoryObj;
-
-    const categoryDiv = document.createElement("div");
-    categoryDiv.className = "category-box";
-
-
-     const categoryThumb = document.createElement("img");
-
-     categoryThumb.setAttribute("src", imgSrc);
-     categoryThumb.setAttribute("alt", `${title} category image`)
-
-     const categoryTitle = document.createElement("h4");
-     categoryTitle.textContent = title;
-
-     categoryDiv.appendChild(categoryThumb);
-     categoryDiv.appendChild(categoryTitle);
-
-     categoryDiv.appendChild(categoryThumb);
-
-     return categoryDiv
-
+  recipeDiv.appendChild(recipeImg);
+  resultsContainer.appendChild(recipeDiv);
 }
 
+async function showMealsByCategory(category) {
+  const { meals } = await fetchMealsByCategory(category);
 
+  resultsContainer.innerHTML = "";
 
-async function main(){
-  let categories = [];
-  const { categories: fetchedCategories } = await fetchData(apiBaseUrl + categoriesEndPoint);
-  readFromStorage(storageKeys.categories);
-  if(!categories){
-    const { categories: fetchedCategories } = await fetchData(apiBaseUrl + categoriesEndPoint);
-  }
-  categories = fetchedCategories;
-  
-  writeToStorage(storageKeys.categories, categories);
-  
-  categories.forEach(el => {
-    const newCategoryEl =  createCategoryElement(el);
-    categgoriesFilterDiv.appendChild(newCategoryEl);
-    
+  meals.forEach((recipe) => {
+    createMealPreviewElement(recipe);
   });
-    
 }
 
+function createCategoryElement(categoryObj) {
+  const { strCategory: title, strCategoryThumb: imgSrc } = categoryObj;
+
+  const categoryDiv = document.createElement("div");
+  categoryDiv.className = "category-box";
+  categoryDiv.addEventListener("click", () => showMealsByCategory(title));
+
+  const categoryThumb = document.createElement("img");
+  categoryThumb.setAttribute("src", imgSrc);
+  categoryThumb.setAttribute("alt", `${title} category image`);
+
+  const categoryTitle = document.createElement("h4");
+  categoryTitle.textContent = title;
+
+  categoryDiv.appendChild(categoryThumb);
+  categoryDiv.appendChild(categoryTitle);
+  return categoryDiv;
+}
+
+async function main() {
+  const { categories } = await fetchData(apiBaseUrl + categoriesEndpoint);
+
+  categories.forEach((el) => {
+    const newCategoryEl = createCategoryElement(el);
+    categoriesFilterDiv.appendChild(newCategoryEl);
+  });
+}
 
 main();
